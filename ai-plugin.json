@@ -3,13 +3,13 @@
   "name_for_human": "AI Image Enhancer",
   "name_for_model": "image_enhancer",
   "description_for_human": "Enhance your images with AI-powered detail recovery and upscaling.",
-  "description_for_model": "Takes an image URL, enhances it using Replicate's TopazLabs model, and returns the enhanced result.",
+  "description_for_model": "Takes an image URL, enhances it using HitPaw model, and returns the enhanced result.",
   "auth": { "type": "none" },
   "api": {
     "type": "openapi",
     "url": "https://ai-image-enhancer-71kc.onrender.com"
   },
-  "logo_url": "https://yourdomain.com/logo.png",
-  "contact_email": "support@yourdomain.com",
-  "legal_info_url": "https://yourdomain.com/legal"
+  "logo_url": "https://www.hitpaw.com/logo.ico",
+  "contact_email": "support@hitpaw.com",
+  "legal_info_url": "https://www.hitpaw.com/privacy-policy.html"
 }
