@@ -3,7 +3,7 @@
   "info": {
     "title": "AI Image Enhancer API",
     "version": "1.0.0",
-    "description": "Enhances images using Replicate AI model. Accepts an image URL and returns an enhanced image."
+    "description": "Enhances images using the nightmareai/real-esrgan model on Replicate. Requests are processed asynchronously; clients create a job and poll for its status."
   },
   "servers": [
     {
@@ -14,69 +14,227 @@
   "paths": {
     "/enhance": {
       "post": {
-        "summary": "Enhance an image using AI",
-        "operationId": "enhanceImage",
-        "description": "Takes an image URL and returns an enhanced version using AI upscaling.",
+        "summary": "Create an enhancement job",
+        "operationId": "createEnhancementJob",
+        "description": "Queues an image enhancement task using nightmareai/real-esrgan. Returns immediately with a job identifier that can be polled for status updates.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "image_url": {
-                    "type": "string",
-                    "description": "URL of the image to enhance"
-                  }
-                },
-                "required": ["image_url"]
+                "$ref": "#/components/schemas/EnhanceRequest"
               },
               "example": {
-                "image_url": "https://replicate.delivery/pbxt/sample.webp"
+                "image_url": "https://replicate.delivery/pbxt/sample.webp",
+                "scale": 2,
+                "face_enhance": true
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Enhanced image successfully generated.",
+          "202": {
+            "description": "Enhancement job accepted.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "input_image": {
-                      "type": "string",
-                      "description": "Original image URL"
-                    },
-                    "enhanced_image": {
-                      "type": "string",
-                      "description": "Enhanced image URL"
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "Processing status"
-                    }
-                  },
-                  "required": ["enhanced_image", "status"]
+                  "$ref": "#/components/schemas/EnhanceJobResponse"
                 },
                 "example": {
+                  "job_id": "4b7d6f2d-6291-4e3d-b53c-1d53c4d3f92f",
+                  "status": "processing",
                   "input_image": "https://replicate.delivery/pbxt/sample.webp",
-                  "enhanced_image": "https://replicate.delivery/pbxt/sample_enhanced.jpg",
-                  "status": "success"
+                  "created_at": "2024-01-01T12:00:00.000Z",
+                  "poll_url": "https://ai-image-enhancer-71kc.onrender.com/enhance/4b7d6f2d-6291-4e3d-b53c-1d53c4d3f92f"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid or missing image_url"
+            "description": "Invalid request payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Missing image_url"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/enhance/{job_id}": {
+      "get": {
+        "summary": "Retrieve enhancement job status",
+        "operationId": "getEnhancementJob",
+        "description": "Returns the current status of an enhancement job. While the job is running the status is processing; once complete the enhanced image URL is provided.",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "Identifier returned by the createEnhancementJob endpoint.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current job status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnhanceJobPollResponse"
+                },
+                "examples": {
+                  "processing": {
+                    "value": {
+                      "job_id": "4b7d6f2d-6291-4e3d-b53c-1d53c4d3f92f",
+                      "status": "processing",
+                      "input_image": "https://replicate.delivery/pbxt/sample.webp",
+                      "created_at": "2024-01-01T12:00:00.000Z"
+                    }
+                  },
+                  "success": {
+                    "value": {
+                      "job_id": "4b7d6f2d-6291-4e3d-b53c-1d53c4d3f92f",
+                      "status": "success",
+                      "input_image": "https://replicate.delivery/pbxt/sample.webp",
+                      "enhanced_image": "https://replicate.delivery/pbxt/sample_enhanced.jpg",
+                      "created_at": "2024-01-01T12:00:00.000Z",
+                      "completed_at": "2024-01-01T12:00:20.000Z"
+                    }
+                  },
+                  "failed": {
+                    "value": {
+                      "job_id": "4b7d6f2d-6291-4e3d-b53c-1d53c4d3f92f",
+                      "status": "failed",
+                      "input_image": "https://replicate.delivery/pbxt/sample.webp",
+                      "error": "Enhancement failed",
+                      "created_at": "2024-01-01T12:00:00.000Z",
+                      "completed_at": "2024-01-01T12:00:05.000Z"
+                    }
+                  }
+                }
+              }
+            }
           },
-          "500": {
-            "description": "Internal server error"
+          "404": {
+            "description": "Job not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Job not found"
+                }
+              }
+            }
           }
         }
       }
     }
   },
-  "components": {}
+  "components": {
+    "schemas": {
+      "EnhanceRequest": {
+        "type": "object",
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public URL of the image to enhance."
+          },
+          "scale": {
+            "type": "number",
+            "description": "Upscaling factor passed to the model.",
+            "default": 2
+          },
+          "face_enhance": {
+            "type": "boolean",
+            "description": "Whether to perform face enhancement during upscaling.",
+            "default": true
+          }
+        },
+        "required": ["image_url"]
+      },
+      "EnhanceJobResponse": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing", "success", "failed"]
+          },
+          "input_image": {
+            "type": "string",
+            "format": "uri"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "poll_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": ["job_id", "status", "input_image", "created_at", "poll_url"]
+      },
+      "EnhanceJobPollResponse": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["processing", "success", "failed"]
+          },
+          "input_image": {
+            "type": "string",
+            "format": "uri"
+          },
+          "enhanced_image": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": ["job_id", "status", "input_image", "created_at"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": ["error"]
+      }
+    }
+  }
 }
