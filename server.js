@@ -51,7 +51,11 @@ app.post("/enhance", async (req, res) => {
   }
 });
 
-// OpenAPI 文件路由
+app.head("/openapi.json", (req, res) => {
+  res.status(200).end();
+});
+
+// === Serve OpenAPI spec ===
 app.get("/openapi.json", (req, res) => {
   const openapiPath = path.join(__dirname, "openapi.json");
   res.sendFile(openapiPath, (err) => {
