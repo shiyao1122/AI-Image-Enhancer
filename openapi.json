@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Image Enhance Demo API",
+    "title": "AI Image Enhancer API",
     "version": "1.0.0",
-    "description": "Simple API that enhances images using HitPaw."
+    "description": "Enhance images using Replicate model. Accepts an image URL and returns the enhanced version."
   },
   "servers": [
     {
@@ -24,7 +24,7 @@
                 "properties": {
                   "image_url": {
                     "type": "string",
-                    "description": "URL of the image to enhance"
+                    "description": "The image URL to enhance"
                   }
                 },
                 "required": ["image_url"]
@@ -34,26 +34,41 @@
         },
         "responses": {
           "200": {
-            "description": "Enhanced image URL",
+            "description": "The enhanced image URL is returned.",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "input_image": {
+                      "type": "string",
+                      "description": "Original image URL"
+                    },
                     "enhanced_image": {
                       "type": "string",
-                      "description": "URL of the enhanced image"
+                      "description": "Enhanced image URL"
                     },
                     "status": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Operation status"
                     }
-                  }
+                  },
+                  "required": ["enhanced_image", "status"]
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid request or missing image_url"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         }
       }
     }
+  },
+  "components": {
+    "schemas": {}
   }
 }
