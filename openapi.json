@@ -1,0 +1,59 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Image Enhance Demo API",
+    "version": "1.0.0",
+    "description": "Simple API that enhances images using HitPaw."
+  },
+  "servers": [
+    {
+      "url": "https://hitpaw-image-enhance-demo.onrender.com"
+    }
+  ],
+  "paths": {
+    "/enhance": {
+      "post": {
+        "summary": "Enhance an image using AI",
+        "operationId": "enhanceImage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string",
+                    "description": "URL of the image to enhance"
+                  }
+                },
+                "required": ["image_url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Enhanced image URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enhanced_image": {
+                      "type": "string",
+                      "description": "URL of the enhanced image"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
