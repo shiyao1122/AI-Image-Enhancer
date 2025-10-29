@@ -3,7 +3,7 @@
   "name_for_human": "AI Image Enhancer",
   "name_for_model": "image_enhancer",
   "description_for_human": "Enhance your images with AI-powered detail recovery and upscaling.",
-  "description_for_model": "Takes an image URL, enhances it using HitPaw model, and returns the enhanced result.",
+  "description_for_model": "Queue an image enhancement job for a public image URL via POST /enhance (supports optional scale, face_enhance). Poll GET /enhance/{job_id} until status is success to read enhanced_image.",
   "auth": { "type": "none" },
   "api": {
     "type": "openapi",
