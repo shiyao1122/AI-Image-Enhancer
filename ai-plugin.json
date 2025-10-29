@@ -7,7 +7,7 @@
   "auth": { "type": "none" },
   "api": {
     "type": "openapi",
-    "url": "https://ai-image-enhancer-71kc.onrender.com"
+    "url": "https://ai-image-enhancer-71kc.onrender.com/openapi.json"
   },
   "logo_url": "https://www.hitpaw.com/logo.ico",
   "contact_email": "support@hitpaw.com",
