@@ -3,72 +3,106 @@
   "info": {
     "title": "AI Image Enhancer API",
     "version": "1.0.0",
-    "description": "Enhance images using Replicate model. Accepts an image URL and returns the enhanced version."
+    "description": "An API for enhancing image clarity and resolution using Replicate. Accepts an image URL and returns an enhanced image URL."
   },
   "servers": [
     {
-      "url": "https://ai-image-enhancer-71kc.onrender.com"
+      "url": "https://ai-image-enhancer-71kc.onrender.com",
+      "description": "Render hosted production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Enhancement",
+      "description": "Endpoints related to image enhancement"
     }
   ],
   "paths": {
     "/enhance": {
       "post": {
+        "tags": ["Enhancement"],
         "summary": "Enhance an image using AI",
         "operationId": "enhanceImage",
+        "description": "Takes an image URL and returns an enhanced version of the image using an AI model.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "image_url": {
-                    "type": "string",
-                    "description": "The image URL to enhance"
+                "$ref": "#/components/schemas/EnhanceRequest"
+              },
+              "examples": {
+                "sample": {
+                  "summary": "Example request",
+                  "value": {
+                    "image_url": "https://replicate.delivery/pbxt/sample.webp"
                   }
-                },
-                "required": ["image_url"]
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "The enhanced image URL is returned.",
+            "description": "Enhanced image successfully generated.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "input_image": {
-                      "type": "string",
-                      "description": "Original image URL"
-                    },
-                    "enhanced_image": {
-                      "type": "string",
-                      "description": "Enhanced image URL"
-                    },
-                    "status": {
-                      "type": "string",
-                      "description": "Operation status"
+                  "$ref": "#/components/schemas/EnhanceResponse"
+                },
+                "examples": {
+                  "result": {
+                    "summary": "Example response",
+                    "value": {
+                      "input_image": "https://replicate.delivery/pbxt/sample.webp",
+                      "enhanced_image": "https://replicate.delivery/pbxt/sample_enhanced.jpg",
+                      "status": "success"
                     }
-                  },
-                  "required": ["enhanced_image", "status"]
+                  }
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request or missing image_url"
+            "description": "Invalid input or missing parameters."
           },
           "500": {
-            "description": "Internal server error"
+            "description": "Internal server error while processing the image."
           }
         }
       }
     }
   },
   "components": {
-    "schemas": {}
+    "schemas": {
+      "EnhanceRequest": {
+        "type": "object",
+        "properties": {
+          "image_url": {
+            "type": "string",
+            "description": "URL of the image to enhance"
+          }
+        },
+        "required": ["image_url"]
+      },
+      "EnhanceResponse": {
+        "type": "object",
+        "properties": {
+          "input_image": {
+            "type": "string",
+            "description": "Original image URL"
+          },
+          "enhanced_image": {
+            "type": "string",
+            "description": "Enhanced image URL returned by AI model"
+          },
+          "status": {
+            "type": "string",
+            "description": "Processing status (e.g., success, failed)"
+          }
+        },
+        "required": ["enhanced_image", "status"]
+      }
+    }
   }
 }
