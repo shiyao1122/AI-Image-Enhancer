@@ -5,12 +5,7 @@
     "version": "1.0.0",
     "description": "Enhances images using Replicate AI model. Accepts an image URL and returns an enhanced image."
   },
-  "servers": [
-    {
-      "url": "https://ai-image-enhancer-71kc.onrender.com",
-      "description": "Render hosted API"
-    }
-  ],
+  "servers": [],
   "paths": {
     "/enhance": {
       "post": {
