@@ -2,8 +2,7 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
 import Replicate from "replicate";
 
 dotenv.config();
@@ -16,10 +15,6 @@ app.use(bodyParser.json());
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
-
-// 获取当前文件路径（Render 会从容器根目录运行）
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // 健康检查路由
 app.get("/", (req, res) => {
@@ -51,20 +46,33 @@ app.post("/enhance", async (req, res) => {
   }
 });
 
-app.head("/openapi.json", (req, res) => {
-  res.status(200).end();
-});
+const openApiDocument = readFileSync(
+  new URL("./openapi.json", import.meta.url),
+  "utf-8"
+);
+const pluginManifest = readFileSync(
+  new URL("./ai-plugin.json", import.meta.url),
+  "utf-8"
+);
 
-// === Serve OpenAPI spec ===
-app.get("/openapi.json", (req, res) => {
-  const openapiPath = path.join(__dirname, "openapi.json");
-  res.sendFile(openapiPath, (err) => {
-    if (err) {
-      console.error("❌ Error sending openapi.json:", err);
-      res.status(500).send("Cannot read openapi.json");
-    }
-  });
-});
+const withHeadResponse = (payload) => (req, res) => {
+  res
+    .status(200)
+    .set("Content-Type", "application/json")
+    .set("Content-Length", Buffer.byteLength(payload, "utf-8"))
+    .end();
+};
+
+const withGetResponse = (payload) => (req, res) => {
+  res.type("application/json").send(payload);
+};
+
+app.head("/openapi.json", withHeadResponse(openApiDocument));
+app.get("/openapi.json", withGetResponse(openApiDocument));
+
+// === Serve plugin manifest ===
+app.head("/.well-known/ai-plugin.json", withHeadResponse(pluginManifest));
+app.get("/.well-known/ai-plugin.json", withGetResponse(pluginManifest));
 
 // 启动服务器
 const PORT = process.env.PORT || 3000;
